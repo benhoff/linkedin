@@ -1,0 +1,95 @@
+2. Workflow A: Draft Edit & Refinement Pipeline
+
+    What it is: A guided canvas where you paste or compose your post, then for each paragraph you spin up LLM-powered rewrites, merge your favorites, and finish with a global tightening step.
+
+    Open Draft Editor
+
+        User pastes or writes their full post into a rich text area.
+
+        App auto–splits content into Paragraph Cards (#1, #2, …).
+
+    Generate Variations
+
+        On each card: click “Get Takes” → LLM returns 3–5 rewritten variants below the original.
+
+        Variants display in a horizontal carousel with checkboxes.
+
+    Merge & Polish Paragraph
+
+        Select one or several variants → click “Merge into Draft” → inline-diff merge editor appears.
+
+        In-editor controls:
+
+            Refine (tone, brevity, style)
+
+            Regenerate (new fresh variant)
+
+            Lock (mark paragraph as final)
+
+    Compress Full Draft
+
+        Once all paragraphs are Locked, click “Shorten Entire Draft” → adjust target length (slider or % reduction) → LLM rewrites the full post to be leaner.
+
+    Export or Advance
+
+        Download as Markdown/.docx or Copy All to clipboard.
+
+        Send to Hook Lab, CTA Lab, or Graphics Lab with one click.
+
+3. Hook Lab
+
+    Trigger: from Dashboard or after the Draft Edit pipeline.
+
+    UI Controls:
+
+        Radio “Hook Type” (Curiosity, Emotion, Surprise, Authority, etc.)
+
+        Multi-Select “Enhance With” (Data, Urgency, Humor)
+
+    Flow: paste a paragraph or outline → generate 5 hooks → vote & refine → lock and copy.
+
+4. CTA Lab
+
+    UI Controls:
+
+        Radio “Primary CTA” (Engagement, Download, Sign-Up, Share, Feedback)
+
+        Multi-Select “Enhance With” (Urgency, Social Proof, Incentive)
+
+    Flow: input Hook + outline → generate CTAs → edit/refine → copy.
+
+5. Graphics Lab
+
+    Flow: input finalized Hook + CTA → generate 4 visual concept prompts → copy prompt for your image tool.
+
+6. Paragraph-By-Paragraph Story Editor
+
+    Canvas alternative to Draft Edit Mode.
+
+    Paragraph Cards with:
+
+        Generate / Regenerate
+
+        Refine (tone, detail)
+
+        Branch (alternate versions)
+
+        Lock & Reorder
+
+    Checkpoint Summaries every few blocks.
+
+7. Example End-to-End Journey
+
+    Start in Draft Edit Mode: paste 7-paragraph draft.
+
+    For each paragraph: Get Takes → Select & Merge → Lock.
+
+    Shorten Entire Draft by 20%.
+
+    Send to Hook Lab: pick Shock + Data hook.
+
+    Send to CTA Lab: choose Sign-Up + Scarcity.
+
+    Go to Graphics Lab: pick graphic prompt #2.
+
+    Export a one-page “Post Brief” with final copy, hook, CTA, and graphic prompt.
