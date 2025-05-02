@@ -1,10 +1,15 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import {
+  sqliteTable,
+  text,
+  integer
+} from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User schema
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
@@ -15,13 +20,18 @@ export const insertUserSchema = createInsertSchema(users).pick({
 });
 
 // Draft schema
-export const drafts = pgTable("drafts", {
-  id: serial("id").primaryKey(),
+export const drafts = sqliteTable("drafts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
   userId: integer("user_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  isCompleted: boolean("is_completed").default(false),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s','now'))`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s','now'))`),
+  isCompleted: integer("is_completed").default(sql`(0)`),
+
 });
 
 export const insertDraftSchema = createInsertSchema(drafts).pick({
@@ -31,13 +41,14 @@ export const insertDraftSchema = createInsertSchema(drafts).pick({
 });
 
 // Paragraph schema
-export const paragraphs = pgTable("paragraphs", {
-  id: serial("id").primaryKey(),
+export const paragraphs = sqliteTable("paragraphs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   draftId: integer("draft_id").references(() => drafts.id).notNull(),
   content: text("content").notNull(),
   position: integer("position").notNull(),
   label: text("label"),
-  isLocked: boolean("is_locked").default(false),
+  isLocked: integer("is_locked").default(sql`(0)`),
+
 });
 
 export const insertParagraphSchema = createInsertSchema(paragraphs).pick({
@@ -49,12 +60,13 @@ export const insertParagraphSchema = createInsertSchema(paragraphs).pick({
 });
 
 // Paragraph variants
-export const variants = pgTable("variants", {
-  id: serial("id").primaryKey(),
+export const variants = sqliteTable("variants", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   paragraphId: integer("paragraph_id").references(() => paragraphs.id).notNull(),
   content: text("content").notNull(),
   label: text("label"),
-  isSelected: boolean("is_selected").default(false),
+  isSelected: integer("is_selected").default(sql`(0)`),
+
 });
 
 export const insertVariantSchema = createInsertSchema(variants).pick({
