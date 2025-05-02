@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Paragraph, Variant, RefinementOptions } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { VariantCard } from '@/components/ui/variant-card';
 import { InlineDiffEditor } from '@/components/ui/inline-diff-editor';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { 
   Lock, 
   LockOpen, 
   RotateCw, 
-  ChevronDown 
+  ChevronDown,
+  Edit,
+  CheckCircle,
+  XCircle,
+  GripVertical
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -29,6 +35,11 @@ interface ParagraphCardProps {
   onMergeToDraft: (selectedVariantIds: number[]) => void;
   onRefine: (options: RefinementOptions) => void;
   onRegenerate: () => void;
+  onUpdateContent: (content: string) => void;
+  onUpdateLabel: (label: string) => void;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
+  isDraggable?: boolean;
 }
 
 export function ParagraphCard({
@@ -41,10 +52,19 @@ export function ParagraphCard({
   onSelectVariant,
   onMergeToDraft,
   onRefine,
-  onRegenerate
+  onRegenerate,
+  onUpdateContent,
+  onUpdateLabel,
+  onDragStart,
+  onDragEnd,
+  isDraggable = true
 }: ParagraphCardProps) {
   const [mergingMode, setMergingMode] = useState(false);
   const [diffContent, setDiffContent] = useState<string | null>(null);
+  const [isEditingLabel, setIsEditingLabel] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [editedLabel, setEditedLabel] = useState('');
+  const [editedContent, setEditedContent] = useState('');
   
   const selectedVariants = variants.filter(v => v.isSelected);
   const paragraphLabel = paragraph.label || `Paragraph ${index + 1}`;
@@ -56,19 +76,104 @@ export function ParagraphCard({
     }
   };
   
+  const handleStartEditLabel = () => {
+    setEditedLabel(paragraphLabel);
+    setIsEditingLabel(true);
+  };
+  
+  const handleSaveLabel = () => {
+    onUpdateLabel(editedLabel);
+    setIsEditingLabel(false);
+  };
+  
+  const handleCancelEditLabel = () => {
+    setIsEditingLabel(false);
+  };
+  
+  const handleStartEditContent = () => {
+    setEditedContent(paragraph.content);
+    setIsEditingContent(true);
+  };
+  
+  const handleSaveContent = () => {
+    onUpdateContent(editedContent);
+    setIsEditingContent(false);
+  };
+  
+  const handleCancelEditContent = () => {
+    setIsEditingContent(false);
+  };
+  
   return (
-    <div className={cn(
-      "paragraph-card",
-      paragraph.isLocked && "paragraph-card-locked"
-    )}>
+    <div 
+      className={cn(
+        "paragraph-card relative",
+        paragraph.isLocked && "paragraph-card-locked"
+      )}
+      draggable={isDraggable && !paragraph.isLocked}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      data-paragraph-id={paragraph.id}
+    >
+      {isDraggable && !paragraph.isLocked && (
+        <div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab opacity-50 hover:opacity-100">
+          <GripVertical className="h-4 w-4 text-neutral-400" />
+        </div>
+      )}
+      
       <div className="card-header">
         <div className="flex items-center">
           <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-white text-xs font-medium">
             {index + 1}
           </span>
-          <span className="ml-2 text-sm font-medium text-neutral-700">
-            {paragraphLabel}
-          </span>
+          
+          {isEditingLabel ? (
+            <div className="ml-2 flex items-center">
+              <Input
+                className="h-8 text-sm"
+                value={editedLabel}
+                onChange={(e) => setEditedLabel(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveLabel();
+                  if (e.key === 'Escape') handleCancelEditLabel();
+                }}
+              />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2" 
+                onClick={handleSaveLabel}
+              >
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 px-2" 
+                onClick={handleCancelEditLabel}
+              >
+                <XCircle className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
+          ) : (
+            <div className="ml-2 flex items-center">
+              <span className="text-sm font-medium text-neutral-700">
+                {paragraphLabel}
+              </span>
+              {!paragraph.isLocked && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 px-1 ml-1" 
+                  onClick={handleStartEditLabel}
+                >
+                  <Edit className="h-3 w-3 text-neutral-400" />
+                </Button>
+              )}
+            </div>
+          )}
+          
           {paragraph.isLocked && (
             <Badge className="ml-2 bg-secondary bg-opacity-10 text-secondary">
               <Lock className="h-3 w-3 mr-1" /> Locked
@@ -77,15 +182,26 @@ export function ParagraphCard({
         </div>
         <div className="flex space-x-2">
           {!paragraph.isLocked && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onGetTakes}
-              disabled={isLoading}
-            >
-              <RotateCw className="h-4 w-4 mr-1" /> 
-              {isLoading ? "Loading..." : "Get Takes"}
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={onGetTakes}
+                disabled={isLoading}
+              >
+                <RotateCw className="h-4 w-4 mr-1" /> 
+                {isLoading ? "Loading..." : "Get Takes"}
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartEditContent}
+                disabled={isEditingContent}
+              >
+                <Edit className="h-4 w-4 mr-1" /> Edit
+              </Button>
+            </>
           )}
           <Button
             variant={paragraph.isLocked ? "outline" : "secondary"}
@@ -113,6 +229,31 @@ export function ParagraphCard({
             onRefine={(options) => onRefine(options)}
             onRegenerate={onRegenerate}
           />
+        ) : isEditingContent ? (
+          <div className="mb-4">
+            <Textarea
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              className="min-h-[120px] mb-2"
+              autoFocus
+            />
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleCancelEditContent}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={handleSaveContent}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
         ) : (
           <>
             <div className="prose max-w-none">
@@ -130,7 +271,7 @@ export function ParagraphCard({
                       key={variant.id}
                       variant={variant}
                       index={idx}
-                      isSelected={variant.isSelected}
+                      isSelected={variant.isSelected ? true : false}
                       onToggleSelect={onSelectVariant}
                     />
                   ))}

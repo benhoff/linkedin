@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ParagraphCard } from '@/components/ui/paragraph-card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,8 @@ interface DraftEditorProps {
 export function DraftEditor({ draftId, paragraphs, onParagraphsUpdated }: DraftEditorProps) {
   const [rawContent, setRawContent] = useState('');
   const [showTextarea, setShowTextarea] = useState(false);
+  const [draggedParagraphId, setDraggedParagraphId] = useState<number | null>(null);
+  const [dragOverParagraphId, setDragOverParagraphId] = useState<number | null>(null);
   const { toast } = useToast();
   
   // API mutations

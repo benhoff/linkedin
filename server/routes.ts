@@ -342,6 +342,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message });
     }
   });
+  
+  // Update paragraph content
+  app.patch("/api/paragraphs/:id/content", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { content } = z.object({ content: z.string() }).parse(req.body);
+      
+      const paragraph = await storage.getParagraph(id);
+      if (!paragraph) {
+        return res.status(404).json({ message: "Paragraph not found" });
+      }
+      
+      // Update paragraph content
+      const updatedParagraph = await storage.updateParagraph(id, {
+        ...paragraph,
+        content
+      });
+      
+      res.json(updatedParagraph);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Update paragraph label
+  app.patch("/api/paragraphs/:id/label", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { label } = z.object({ label: z.string() }).parse(req.body);
+      
+      const paragraph = await storage.getParagraph(id);
+      if (!paragraph) {
+        return res.status(404).json({ message: "Paragraph not found" });
+      }
+      
+      // Update paragraph label
+      const updatedParagraph = await storage.updateParagraph(id, {
+        ...paragraph,
+        label
+      });
+      
+      res.json(updatedParagraph);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Update paragraph positions
+  app.patch("/api/drafts/:id/reorder", async (req, res) => {
+    try {
+      const draftId = parseInt(req.params.id);
+      const { paragraphOrder } = z.object({ 
+        paragraphOrder: z.array(z.object({
+          id: z.number(),
+          position: z.number()
+        }))
+      }).parse(req.body);
+      
+      // Check if draft exists
+      const draft = await storage.getDraft(draftId);
+      if (!draft) {
+        return res.status(404).json({ message: "Draft not found" });
+      }
+      
+      // Update each paragraph position
+      for (const item of paragraphOrder) {
+        const paragraph = await storage.getParagraph(item.id);
+        if (paragraph) {
+          await storage.updateParagraph(item.id, {
+            ...paragraph,
+            position: item.position
+          });
+        }
+      }
+      
+      res.json({ message: "Paragraphs reordered successfully" });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
 
   // Variants routes
   app.patch("/api/variants/:id/toggle-select", async (req, res) => {
