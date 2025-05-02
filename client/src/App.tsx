@@ -16,6 +16,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={DraftEdit} />
+      <Route path="/draft-edit" component={DraftEdit} />
       <Route path="/hook-lab" component={HookLab} />
       <Route path="/cta-lab" component={CtaLab} />
       <Route path="/graphics-lab" component={GraphicsLab} />

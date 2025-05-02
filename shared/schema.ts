@@ -26,7 +26,8 @@ export const drafts = pgTable("drafts", {
 
 export const insertDraftSchema = createInsertSchema(drafts).pick({
   title: true,
-  userId: true,
+}).extend({
+  userId: z.number().nullable().optional(),
 });
 
 // Paragraph schema

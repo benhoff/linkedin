@@ -11,10 +11,31 @@ import { generateVariants, refineParagraph, compressDraft, splitContent } from "
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Seed a default user if none exists
+  try {
+    const defaultUser = await storage.getUserByUsername("default_user");
+    if (!defaultUser) {
+      await storage.createUser({
+        username: "default_user",
+        password: "password123" // In a real app, we'd hash this
+      });
+      console.log("Created default user");
+    }
+  } catch (error) {
+    console.error("Error seeding default user:", error);
+  }
+
   // Drafts routes
   app.post("/api/drafts", async (req, res) => {
     try {
       const validatedData = insertDraftSchema.parse(req.body);
+      
+      // Try to get the default user
+      const defaultUser = await storage.getUserByUsername("default_user");
+      if (defaultUser) {
+        validatedData.userId = defaultUser.id;
+      }
+      
       const draft = await storage.createDraft(validatedData);
       res.status(201).json(draft);
     } catch (error) {
